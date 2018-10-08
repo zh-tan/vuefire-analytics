@@ -21,23 +21,90 @@
         by {{todo.username}}
 			</li>
 		</ul>
+    	<h2> Charts based on
+			<a href="https://github.com/ankane/vue-chartkick">vue-chartkick</a>
+		</h2>
+  Current route <b>{{currentRoute}}</b> 
+	<p>
+		<!-- use router-link component for navigation. -->
+		<!-- specify the link by passing the `to` prop. -->
+		<!-- `<router-link>` will be rendered as an `<a>` tag by default -->
+		<router-link to="/foo">Go to Foo</router-link>
+		<router-link to="/bar">Go to Bar</router-link>
+	</p>
+	<!-- route outlet -->
+	<!-- component matched by the route will render here -->
+	<router-view></router-view>
+
+		Column chart
+		<button v-for="(item,index) in barData" @click="add(index)">{{item[0]}}</button>
+		<column-chart :data="barData"></column-chart>
+
+		 Column chart2
+		<button v-for="(item,index) in barData2" @click="add(index)">{{item[0]}}</button>
+		<column-chart :data="barData"></column-chart>
+
+		<br> Bar chart
+		<button v-for="(item,index) in chartData" @click="inc(index)">{{item[0]}}</button>
+		<line-chart :data="chartData"></line-chart>
 	</div>
 	<script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+	<script src="https://unpkg.com/chart.js@2.7.2/dist/Chart.bundle.js"></script>
+	<script src="https://unpkg.com/vue-chartkick@0.4.0"></script>
 	<script src="https://gstatic.com/firebasejs/4.2.0/firebase.js"></script>
 	<script src="https://unpkg.com/vuefire/dist/vuefire.js"></script>
-	<script>
+	
+  
+  <script>
+    let fooTemplate = `<div>
+    foo
+    <ul>
+      <li v-for="x in [1,2,3]">{{x}}</li>
+    </ul>
+</div>`
+
+const Foo = { template: fooTemplate }
+const Bar = { template: '<div>bar</div>' }
+
+// 2. Define some routes
+// Each route should map to a component. The "component" can
+// either be an actual component constructor created via
+// `Vue.extend()`, or just a component options object.
+// We'll talk about nested routes later.
+const routes = [
+  { path: '/foo', component: Foo },
+  { path: '/bar', component: Bar }
+]
+
+// 3. Create the router instance and pass the `routes` option
+// You can pass in additional options here, but let's
+// keep it simple for now.
+const router = new VueRouter({
+  routes // short for `routes: routes`
+})
 		var db = firebase.initializeApp({
         databaseURL: 'https://awesome-56c60.firebaseio.com'
       }).database()
-      var todosRef = db.ref('todosWithUsername')
+      var todosRef = db.ref('charts')
       new Vue({
         el: '#app',
+       router,
         data: {
           newTodoText: '',
-          username:'anonymous'
+          username:'anonymous',
+         	barData: [["Jan", 4], ["Feb", 2], ["Mar", 10], ["Apr", 5], ["May", 3]],
+          chartData: [['Sun', 32], ['Mon', 46], ['Tue', 28]],
+          barData2: [["Jan", 4], ["Feb", 2], ["Mar", 10], ["Apr", 5], ["May", 3]]
         },
         firebase: {
           todos: todosRef.limitToLast(25)
+        },
+        computed: {
+          currentRoute () {
+          // We will see what `params` is shortly
+            return this.$route.path
+          }
         },
         methods: {
           addTodo: function () {
