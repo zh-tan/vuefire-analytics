@@ -18,9 +18,6 @@
 		<router-link to="line">Line</router-link>
 	  <router-link to="local">Local</router-link>
 	</p>
-	<!-- route outlet -->
-	<!-- component matched by the route will render here -->
-	<router-view></router-view>
 
     <div v-if="charts.barData2 && currentRoute === '/bar'">
       Chart: {{charts.barData2.title }}
