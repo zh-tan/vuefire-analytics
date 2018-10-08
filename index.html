@@ -1,52 +1,44 @@
 <html>
 <head>
-	<title>Plain HTML Sandbox</title>
+	<title>Single File Vue Charts</title>
 </head>
 <body>
 	<div id="app">
-		<b>Check out our awesome service</b>
-    Logged in as <input v-model.trim='username' @keyup.enter="updateUser" placeholder="Add username"><br>
-		<br>
-    <input v-model.trim="newTodoText" @keyup.enter="addTodo" placeholder="Add new todo">
-		<button @click="addTodo">Add</button>
-		<ul>
-			<li v-for="todo in todos">
-				<input :value="todo.text" 
-			         :disabled="username!=todo.username"
-                @input="updateTodoText(todo, $event.target.value)">
-        <button v-if="username==todo.username" 
-                @click="removeTodo(todo)">
-                X
-        </button>
-        by {{todo.username}}
-			</li>
-		</ul>
-    	<h2> Charts based on
+    <!--<pre>{{charts}}</pre>-->
+
+    <h3> Charts based on
 			<a href="https://github.com/ankane/vue-chartkick">vue-chartkick</a>
-		</h2>
+		</h3>
   Current route <b>{{currentRoute}}</b> 
 	<p>
 		<!-- use router-link component for navigation. -->
 		<!-- specify the link by passing the `to` prop. -->
 		<!-- `<router-link>` will be rendered as an `<a>` tag by default -->
-		<router-link to="/foo">Go to Foo</router-link>
-		<router-link to="/bar">Go to Bar</router-link>
+		<router-link to="bar">Bar</router-link>
+		<router-link to="line">Line</router-link>
+	  <router-link to="local">Local</router-link>
 	</p>
 	<!-- route outlet -->
 	<!-- component matched by the route will render here -->
 	<router-view></router-view>
 
-		Column chart
-		<button v-for="(item,index) in barData" @click="add(index)">{{item[0]}}</button>
-		<column-chart :data="barData"></column-chart>
+    <div v-if="charts.barData2 && currentRoute === '/bar'">
+      Chart: {{charts.barData2.title }}
+      <column-chart :data="charts.barData2.data"></column-chart>
+    </div>
 
-		 Column chart2
-		<button v-for="(item,index) in barData2" @click="add(index)">{{item[0]}}</button>
-		<column-chart :data="barData"></column-chart>
+    <div v-if="charts.lineData2 && currentRoute === '/line'">
+	    Chart: {{charts.lineData2.title}}
+      <line-chart :data="charts.lineData2.data"></line-chart>
+    </div>
 
-		<br> Bar chart
-		<button v-for="(item,index) in chartData" @click="inc(index)">{{item[0]}}</button>
-		<line-chart :data="chartData"></line-chart>
+		<div v-if="currentRoute === '/local'">
+		  Chart: Local Bar Data
+      <column-chart :data="localBarData"></column-chart>
+      <br> 
+      Chart: Local Line Data
+		  <line-chart :data="localLineData"></line-chart>
+    </div>
 	</div>
 	<script src="https://unpkg.com/vue"></script>
   <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
@@ -57,24 +49,15 @@
 	
   
   <script>
-    let fooTemplate = `<div>
-    foo
-    <ul>
-      <li v-for="x in [1,2,3]">{{x}}</li>
-    </ul>
-</div>`
 
-const Foo = { template: fooTemplate }
-const Bar = { template: '<div>bar</div>' }
+const Bar = { template: '<div>TEMP</div>' }
 
 // 2. Define some routes
-// Each route should map to a component. The "component" can
-// either be an actual component constructor created via
-// `Vue.extend()`, or just a component options object.
-// We'll talk about nested routes later.
+// Each route should map to a component.
 const routes = [
-  { path: '/foo', component: Foo },
-  { path: '/bar', component: Bar }
+  { path: '/bar', component: Bar },
+  { path: '/line', component: Bar },
+  { path: '/local', component: Bar }
 ]
 
 // 3. Create the router instance and pass the `routes` option
@@ -86,43 +69,27 @@ const router = new VueRouter({
 		var db = firebase.initializeApp({
         databaseURL: 'https://awesome-56c60.firebaseio.com'
       }).database()
-      var todosRef = db.ref('charts')
+      var chartsRef = db.ref('charts')
       new Vue({
         el: '#app',
        router,
         data: {
           newTodoText: '',
           username:'anonymous',
-         	barData: [["Jan", 4], ["Feb", 2], ["Mar", 10], ["Apr", 5], ["May", 3]],
-          chartData: [['Sun', 32], ['Mon', 46], ['Tue', 28]],
-          barData2: [["Jan", 4], ["Feb", 2], ["Mar", 10], ["Apr", 5], ["May", 3]]
+         	localBarData: [["Jan", 4], ["Feb", 2], ["Mar", 10], ["Apr", 5], ["May", 3]],
+          localLineData: [["Sun", 32], ["Mon", 46], ["Tue", 28]]
         },
         firebase: {
-          todos: todosRef.limitToLast(25)
-        },
+        charts: {
+            source: db.ref('charts'),
+          // optionally bind as an object
+            asObject: true,
+       }},
+  
         computed: {
           currentRoute () {
           // We will see what `params` is shortly
             return this.$route.path
-          }
-        },
-        methods: {
-          addTodo: function () {
-            if (this.newTodoText) {
-              todosRef.push({ 
-                  text: this.newTodoText,
-                   username:this.username})
-              this.newTodoText = ''
-            }
-          },
-          updateTodoText: function (todo, newText) {
-            todosRef.child(todo['.key']).child('text').set(newText)
-          },
-          updateUser: function(){
-            
-          },
-          removeTodo: function (todo) {
-            todosRef.child(todo['.key']).remove()
           }
         }
       })
